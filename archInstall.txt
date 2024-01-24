@@ -1,0 +1,64 @@
+Arch installation
+
+listen to Hot Since 82 Veins
+
+set up keyboard layout: 
+loadkeys fr
+
+set up wifi connection:
+iwctl
+device list
+station deviceName scan
+station deviceName get-networks
+station deviceName connect networkName
+ping google.com
+
+installation:
+pacman -Sy
+archinstall
+disk conf in ext4
+bootloader->GRUB
+profile->type->desktop->hyprland->polkit
+UTC->Berlin
+no additional packages
+
+set ethernet connection:
+show device->ip addr
+sudo systemctl enable systemd-networkd
+sudo systemctl start systemd-networkd
+sudo systemctl enable systemd-resolved
+sudo systemctl start systemd-resolved
+sudo vim /etc/systemd/network/20-wired.network
+in it->'[Match]
+Name=deviceName
+[Network]
+DHCP=yes'
+sudo systemctl restart systemd-networkd
+sudo systemctl restart systemd-resolved
+
+nvidia:
+sudo vim /etc/pacman.conf
+uncomment '[multili]' and the include bellow
+sudo pacman nvidia-dkms
+in /etc/default/grub add nvidia_drm.modeset=1 to the end of 'GRUB_CMDLINE_LINUX_DEFAULT='
+grub-mkconfig -o /boot/grub/grub.cfg
+in /etc/mkinitcpio.conf add nvidia nvidia_modeset nvidia_uvm nvidia_drm to the MODULES
+sudo pacman -S linux-header
+mkinitcpio --config /etc/mkinitcpio.conf --generate /boot/initramfs-custom.img
+in /etc/modprobe.d/nvidia.conf (make it if it does not exist) add options nvidia-drm modeset=1
+in hyprland.conf add to env->'env = LIBVA_DRIVER_NAME,nvidia
+env = XDG_SESSION_TYPE,wayland
+env = GBM_BACKEND,nvidia-drm
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia'
+sudo pacman -S qt5-waland
+sudo pacman -S qt5ct
+sudo pacman -S libva
+sudo reboot
+
+usb mount using udisk2:
+*note->dolphine make mount automatically
+sudo pacman -S udisks2
+list device->lsblk
+mount->udisksctl mount -b /dev/deviceName
+unmount->udisksctl unmount -b /dev/deviceName
+powerOff->udisksctl power-off -b /dev/deviceName
